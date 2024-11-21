@@ -9,9 +9,9 @@ from tensorflow.keras.models import load_model
 lemmatizer = WordNetLemmatizer()
 intents = json.loads(open('intents.json').read())
 
-words = pickle.load(open('words.pkl', 'rb'))
-classes = pickle.load(open('classes.pkl', 'rb'))
-model = load_model('chatbot_model.keras')
+words = pickle.load(open('models/words.pkl', 'rb'))
+classes = pickle.load(open('models/classes.pkl', 'rb'))
+model = load_model('models/chatbot_model.keras')
 
 #Clean up the sentences
 def clean_up_sentence(sentence):
