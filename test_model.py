@@ -1,78 +1,83 @@
-import chatbot.py
+import chatbot
 
 test_cases = [
     # Greetings
-    {"input": "Hey!", "expected_intent": "greetings"},
-    {"input": "Howdy!", "expected_intent": "greetings"},
-    {"input": "Yo!", "expected_intent": "greetings"},
-    {"input": "Hi there, good to see you.", "expected_intent": "greetings"},
+    {"input": "Hello!", "expected_intent": "greetings"},
+    {"input": "Hi there!", "expected_intent": "greetings"},
+    {"input": "Hey, how are you?", "expected_intent": "greetings"},
+    {"input": "Greetings, my friend!", "expected_intent": "greetings"},
 
-    # Small talk
-    {"input": "What’s your favorite color?", "expected_intent": "small_talk"},
-    {"input": "Do you like music?", "expected_intent": "small_talk"},
-    {"input": "What’s the weather like?", "expected_intent": "small_talk"},
-    {"input": "Let’s chat!", "expected_intent": "small_talk"},
+    # Goodbye
+    {"input": "Goodbye!", "expected_intent": "goodbye"},
+    {"input": "See you later.", "expected_intent": "goodbye"},
+    {"input": "Have a nice day!", "expected_intent": "goodbye"},
+    {"input": "Bye!", "expected_intent": "goodbye"},
 
-    # Questions about the bot
-    {"input": "Who are you?", "expected_intent": "about_bot"},
-    {"input": "What’s your purpose?", "expected_intent": "about_bot"},
-    {"input": "Can you tell me about yourself?", "expected_intent": "about_bot"},
-    {"input": "Are you a human?", "expected_intent": "about_bot"},
+    # Age
+    {"input": "How old are you?", "expected_intent": "age"},
+    {"input": "What is your age?", "expected_intent": "age"},
+    {"input": "How many years old are you?", "expected_intent": "age"},
+    {"input": "Can you tell me your age?", "expected_intent": "age"},
 
-    # General knowledge
-    {"input": "What is the square root of 144?", "expected_intent": "general_knowledge"},
-    {"input": "Who won the FIFA World Cup in 2018?", "expected_intent": "general_knowledge"},
-    {"input": "How do I bake a cake?", "expected_intent": "general_knowledge"},
-    {"input": "Explain the theory of relativity.", "expected_intent": "general_knowledge"},
+    # Name
+    {"input": "What is your name?", "expected_intent": "name"},
+    {"input": "Who are you?", "expected_intent": "name"},
+    {"input": "What should I call you?", "expected_intent": "name"},
+    {"input": "Do you have a name?", "expected_intent": "name"},
 
-    # Farewells
-    {"input": "Catch you later!", "expected_intent": "goodbye"},
-    {"input": "I’ve got to go now.", "expected_intent": "goodbye"},
-    {"input": "Bye for now.", "expected_intent": "goodbye"},
-    {"input": "Take care!", "expected_intent": "goodbye"},
+    # Shop
+    {"input": "What do you sell?", "expected_intent": "shop"},
+    {"input": "Do you have any products?", "expected_intent": "shop"},
+    {"input": "Can I see your catalog?", "expected_intent": "shop"},
+    {"input": "I’d like to buy something.", "expected_intent": "shop"},
 
-    # Shopping/Transactional
-    {"input": "Can you show me your menu?", "expected_intent": "shopping"},
-    {"input": "I’d like to order pizza.", "expected_intent": "shopping"},
-    {"input": "How much is this?", "expected_intent": "shopping"},
-    {"input": "What’s the price of a large coffee?", "expected_intent": "shopping"},
+    # Hours
+    {"input": "What are your opening hours?", "expected_intent": "hours"},
+    {"input": "When do you open?", "expected_intent": "hours"},
+    {"input": "What time do you close?", "expected_intent": "hours"},
+    {"input": "Are you open 24/7?", "expected_intent": "hours"},
 
-    # Gratitude
-    {"input": "Thank you!", "expected_intent": "gratitude"},
-    {"input": "Thanks a lot.", "expected_intent": "gratitude"},
-    {"input": "Cheers!", "expected_intent": "gratitude"},
-    {"input": "Much appreciated.", "expected_intent": "gratitude"},
+    # Politics
+    {"input": "What is communism?", "expected_intent": "politics"},
+    {"input": "Who was the first impeached president?", "expected_intent": "politics"},
+    {"input": "Do you like guns?", "expected_intent": "politics"},
+    {"input": "What is capitalism?", "expected_intent": "politics"},
 
-    # Apologies
-    {"input": "Sorry about that.", "expected_intent": "apology"},
-    {"input": "I didn’t mean to do that.", "expected_intent": "apology"},
-    {"input": "My apologies.", "expected_intent": "apology"},
-    {"input": "I’m sorry, can we try again?", "expected_intent": "apology"},
+    # AI
+    {"input": "What is AI?", "expected_intent": "AI"},
+    {"input": "Are you sentient?", "expected_intent": "AI"},
+    {"input": "What is your programming language?", "expected_intent": "AI"},
+    {"input": "Do you have a body?", "expected_intent": "AI"},
 
-    # Compliments
-    {"input": "You’re amazing!", "expected_intent": "compliment"},
-    {"input": "That’s a great response.", "expected_intent": "compliment"},
-    {"input": "You’re really smart.", "expected_intent": "compliment"},
-    {"input": "Good job!", "expected_intent": "compliment"},
+    # Emotion
+    {"input": "Do you have emotions?", "expected_intent": "emotion"},
+    {"input": "What makes you happy?", "expected_intent": "emotion"},
+    {"input": "Are you angry?", "expected_intent": "emotion"},
+    {"input": "Do you ever get lonely?", "expected_intent": "emotion"},
 
-    # Complaints
-    {"input": "That wasn’t very helpful.", "expected_intent": "complaint"},
-    {"input": "I didn’t like your answer.", "expected_intent": "complaint"},
-    {"input": "This isn’t working.", "expected_intent": "complaint"},
-    {"input": "I’m not satisfied with that.", "expected_intent": "complaint"},
+    # Computers
+    {"input": "What is a computer?", "expected_intent": "computers"},
+    {"input": "How do computers work?", "expected_intent": "computers"},
+    {"input": "Who invented computers?", "expected_intent": "computers"},
+    {"input": "What is a microprocessor?", "expected_intent": "computers"},
 
-    # Out-of-scope/Unknown
-    {"input": "What’s the stock price of Tesla?", "expected_intent": None},
-    {"input": "What’s the airspeed velocity of an unladen swallow?", "expected_intent": None},
-    {"input": "Translate this text to Japanese.", "expected_intent": None},
-    {"input": "Run Python code.", "expected_intent": None},
+    # Trivia
+    {"input": "Who was the 37th President of the United States?", "expected_intent": "trivia"},
+    {"input": "What year was JFK assassinated?", "expected_intent": "trivia"},
+    {"input": "What is the Andromeda galaxy?", "expected_intent": "trivia"},
+    {"input": "Who is Edwin Hubble?", "expected_intent": "trivia"},
 
-    # Mixed/Edge cases
-    {"input": "Hello, can I buy a coffee?", "expected_intent": "shopping"},
-    {"input": "Thanks, see you later!", "expected_intent": "gratitude"},
-    {"input": "Sorry, I’d like to order something.", "expected_intent": "shopping"},
-    {"input": "You’re helpful, goodbye!", "expected_intent": "goodbye"},
+    # Default (Fallback)
+    {"input": "Tell me something interesting.", "expected_intent": "default"},
+    {"input": "What can you help me with?", "expected_intent": "default"},
+    {"input": "Can you do anything else?", "expected_intent": "default"},
+    {"input": "Do you understand me?", "expected_intent": "default"},
 ]
+
+
+total_tests = 0
+passes = 0
+fails = 0
 
 for test in test_cases:
     predicted_intent = chatbot.predict_class(test["input"])  # Predict intent
@@ -80,3 +85,8 @@ for test in test_cases:
     print(f"Input: {test['input']}")
     print(f"Predicted: {intent}, Expected: {test['expected_intent']}")
     print("Pass" if intent == test["expected_intent"] else "Fail")
+    if intent == test["expected_intent"]:
+        passes += 1
+    else:
+        fails += 1
+print(f"Total passes: {passes} \n Total fails: {fails}")
