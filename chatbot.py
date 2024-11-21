@@ -50,11 +50,20 @@ def get_response(intents_list, intents_json):
             break
     return result
 
-print("COM727 Chatbot is here!")
 
-while True:
-    message = input("You: ")
-    ints = predict_class(message)
-    print(f"DEBUG: predicted intents: {ints}") # debug line
-    res = get_response(ints, intents)
-    print(res)
+
+def main():
+
+    print("COM727 Chatbot is here!")
+    while True:
+        message = input("You: ")
+        if message.lower() == "quit":
+            break
+        ints = predict_class(message)
+        print(f"DEBUG: predicted intents: {ints}") # debug line
+        res = get_response(ints, intents)
+        print(res)
+
+# Only start the chatbot if the script is run directly
+if __name__ == "__main__":
+    main()
