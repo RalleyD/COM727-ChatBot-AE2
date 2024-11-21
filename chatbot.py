@@ -7,7 +7,7 @@ from nltk.stem import WordNetLemmatizer
 from tensorflow.keras.models import load_model
 
 lemmatizer = WordNetLemmatizer()
-intents = json.loads(open('intents.json').read())
+intents = json.loads(open('new_intents.json').read())
 
 words = pickle.load(open('models/words.pkl', 'rb'))
 classes = pickle.load(open('models/classes.pkl', 'rb'))

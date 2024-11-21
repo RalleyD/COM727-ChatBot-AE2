@@ -15,7 +15,7 @@ nltk.download('stopwords')
 nltk.download('punkt_tab')
 lemmatizer = WordNetLemmatizer()
 
-intents = json.loads(open('intents.json').read())
+intents = json.loads(open('new_intents.json').read())
 
 words = []
 classes = []
