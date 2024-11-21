@@ -55,5 +55,6 @@ print("COM727 Chatbot is here!")
 while True:
     message = input("You: ")
     ints = predict_class(message)
+    print(f"DEBUG: predicted intents: {ints}") # debug line
     res = get_response(ints, intents)
     print(res)
