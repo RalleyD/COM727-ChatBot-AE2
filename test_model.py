@@ -1,4 +1,6 @@
 import chatbot
+from tabulate import tabulate
+import matplotlib.pyplot as plt
 
 test_cases = [
     # Greetings
@@ -75,18 +77,40 @@ test_cases = [
 ]
 
 
-total_tests = 0
+
+# Initialise counters and results storage
 passes = 0
 fails = 0
+results = []
+
 
 for test in test_cases:
     predicted_intent = chatbot.predict_class(test["input"])  # Predict intent
     intent = predicted_intent[0]["intent"] if predicted_intent else None
-    print(f"Input: {test['input']}")
-    print(f"Predicted: {intent}, Expected: {test['expected_intent']}")
-    print("Pass" if intent == test["expected_intent"] else "Fail")
-    if intent == test["expected_intent"]:
+    result = "Pass" if intent == test["expected_intent"] else "Fail"
+
+    # Update counters
+    if result == "Pass":
         passes += 1
     else:
         fails += 1
-print(f"Total passes: {passes} \n Total fails: {fails}")
+
+    results.append([test["input"], test["expected_intent"], intent, result])
+
+# print detailed table
+print(tabulate(results, headers=["Input", "Expected Intent", "Predicted Intent", "Result"], tablefmt="grid"))
+
+# Summary
+
+print("\nSummary:")
+print(f"Total passes: {passes}")
+print(f"Total fails: {fails}")
+
+# Plot the results
+labels = ["Passes", "Fails"]
+counts = [passes, fails]
+
+plt.bar(labels, counts)
+plt.title("Test Results")
+plt.ylabel("Count")
+plt.show()
