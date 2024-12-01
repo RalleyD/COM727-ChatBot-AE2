@@ -7,7 +7,14 @@ from nltk.stem import WordNetLemmatizer
 from tensorflow.keras.models import load_model
 
 lemmatizer = WordNetLemmatizer()
-intents = json.loads(open('intents.json').read())
+json_files= ['Anaerobic_respiration.json',
+             'Aerobic_respiration.json',
+             'Gas_exchage.json','Greetings.json',
+             'Response_to_exercise.json',
+             'Type_of_respiration.json']
+intents=[]
+for file in json_files:
+    intents.append(json.loads(open(file).read()))
 
 words = pickle.load(open('words.pkl', 'rb'))
 classes = pickle.load(open('classes.pkl', 'rb'))
@@ -41,19 +48,48 @@ def predict_class(sentence):
         return_list.append({'intent': classes[r[0]], 'probability': str(r[1])})
     return return_list
 
+# def get_response(intents_list, intents_json):
+#     tag = intents_list[0]['intent']
+#     list_of_intents = intents_json['intents']
+#     for i in list_of_intents:
+#         if i['tag'] == tag:
+#             result = random.choice(i['responses'])
+#             break
+#     return result
+
+# def get_response(intents_list, intents_json):
+#     tag = intents_list[0]['intent']
+#     for intent in intents_json:
+
+#         list_of_intents = intent ['intents']
+#         for i in list_of_intents:
+#             if i['tag'] == tag:
+#                 result = random.choice(i['responses'])
+#                 break
+#         return result
+# print("COM727 Chatbot is here!")
+
+# while True:
+#     message = input("You: ")
+#     ints = predict_class(message)
+#     res = get_response(ints, intents)
+#     print(res)
 def get_response(intents_list, intents_json):
     tag = intents_list[0]['intent']
-    list_of_intents = intents_json['intents']
-    for i in list_of_intents:
-        if i['tag'] == tag:
-            result = random.choice(i['responses'])
-            break
-    return result
+    for intent_json in intents_json:
+        list_of_intents = intent_json['intents']
+        for i in list_of_intents:
+            if i['tag'] == tag:
+                result = random.choice(i['responses'])
+                return result
+    return "I'm not sure about that. Could you ask something related to human respiration?"
 
 print("COM727 Chatbot is here!")
 
 while True:
     message = input("You: ")
+    if message.lower() == "quit":
+        break
     ints = predict_class(message)
     res = get_response(ints, intents)
-    print(res)
+    print("Chatbot: ", res)
