@@ -15,7 +15,9 @@ __Team Solent Five__
 Support GCSE students with their Science revision with a simple Q&A style chat bot.
 
 ## Core functionality
-Provide GCSE-level answers to Science revision questions
+Provide GCSE-level answers to Science revision questions. 
+
+Based on the question the user asks, the chatbox forms an answer with relevant information based on the topic of the question.
 
 ## Requirements
 The chat bot shall:
