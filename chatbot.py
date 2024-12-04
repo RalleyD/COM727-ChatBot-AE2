@@ -50,10 +50,13 @@ def get_response(intents_list, intents_json):
             break
     return result
 
-print("COM727 Chatbot is here!")
-
-while True:
-    message = input("You: ")
+def handle_query(message):
     ints = predict_class(message)
-    res = get_response(ints, intents)
-    print(res)
+    return get_response(ints, intents)
+
+if __name__ == "__main__":
+    print("COM727 Chatbot is here!")
+
+    while True:
+        message = input("You: ")
+        print(handle_query(message))
