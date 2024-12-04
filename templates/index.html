@@ -108,17 +108,19 @@
                     document
                         .getElementById("userInput")
                         .scrollIntoView({ block: "start", behavior: "smooth" });
-                    /* make an AJAX JQuery get request to the chatbot backend (flask app) passing JSON-like data
-                       .done(function (data)) is a callback that, on completion of the flask function
-                       returns the data from that call
-                    */
-                    $.get("/get", { msg: rawText }).done(function (data) {
+                    fetch("/post", {
+                        method: 'POST',
+                        headers: {'content-type' : 'application/json'},
+                        body: JSON.stringify({msg: rawText}),
+                    })
+                    .then((response) => response.text())
+                    .then((data) => {
                         var botHtml = '<p class="botText"><span>' + data + "</span></p>";
                         // place the bot's reply in the chatbox
                         $("#chatbox").append(botHtml);
                         document
                             .getElementById("userInput")
-                            .scrollIntoView({ block: "start", behavior: "smooth" });
+                            .scrollIntoView({ block: "start", behavior: "smooth" })
                     });
                 }
             }

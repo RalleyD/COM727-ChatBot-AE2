@@ -15,11 +15,10 @@ def home():
     return render_template("index.html")
 
 
-@app.route('/get')
+@app.post('/post')
 def bot_reply():
-    '''aligns with the JQuery get request in index.html'''
-    # get the user's query text accessed from the JSON key 'msg'
-    user_query = request.args.get('msg')
+    '''aligns with the index.html JS script POST URL'''
+    user_query = request.get_json()['msg']
     return handle_query(user_query)
 
 
