@@ -24,8 +24,7 @@ def bot_reply():
 
 @app.route('/about')
 def about():
-    # TODO, add contributors names and project year
-    return "Solent Five Study Budy Chatbot Project"
+    return render_template("about.html")
 
 
 if __name__ == "__main__":
