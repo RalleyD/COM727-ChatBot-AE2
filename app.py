@@ -27,6 +27,11 @@ def about():
     return render_template("about.html")
 
 
+@app.errorhandler(404)
+def handle_error(error):
+    return str(error)
+
+
 if __name__ == "__main__":
     # for development use:
     app.run(debug=True)
