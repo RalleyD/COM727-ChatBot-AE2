@@ -1,15 +1,25 @@
 # COM727-ChatBot-AE2
-Science study buddy chat bot - COM727 project 1
+Science study buddy chat bot - COM727 project AE2
 
 __Team Solent Five__
 
-@0okoni37
-
-@0taylr16
-
-@Aigbs007
-
-@mundlel
+<div>
+    <p>
+        Lauren Mundle
+    </p>
+    <p>
+        Aigbokhai (Aigbs) Ohiwerei
+    </p>
+    <p>
+        Itohowo (Itos) Okonna
+    </p>
+    <p>
+        Richard (Rich Tea) Taylor
+    </p>
+    <p>
+        Dan Ralley
+    </p>
+</div>
 
 # Scope
 Support GCSE students with their Science revision with a simple Q&A style chat bot.
@@ -38,6 +48,9 @@ TBC...
 
 # Project management
 [milestone timeline planner](https://github.com/users/RalleyD/projects/1)
+
+# webapp
+[see readme](webapp/README.md)
 
 # useful resources
 
