@@ -7,11 +7,11 @@ from nltk.stem import WordNetLemmatizer
 from tensorflow.keras.models import load_model
 
 lemmatizer = WordNetLemmatizer()
-intents = json.loads(open('intents.json').read())
+intents = json.loads(open('new_intents.json').read())
 
-words = pickle.load(open('words.pkl', 'rb'))
-classes = pickle.load(open('classes.pkl', 'rb'))
-model = load_model('chatbot_model.keras')
+words = pickle.load(open('models/words.pkl', 'rb'))
+classes = pickle.load(open('models/classes.pkl', 'rb'))
+model = load_model('models/chatbot_model.keras')
 
 #Clean up the sentences
 def clean_up_sentence(sentence):
@@ -53,10 +53,20 @@ def get_response(intents_list, intents_json):
             break
     return result
 
-print("COM727 Chatbot is here!")
 
-while True:
-    message = input("You: ")
-    ints = predict_class(message)
-    res = get_response(ints, intents)
-    print(res)
+
+def main():
+
+    print("COM727 Chatbot is here!")
+    while True:
+        message = input("You: ")
+        if message.lower() == "quit":
+            break
+        ints = predict_class(message)
+        print(f"DEBUG: predicted intents: {ints}") # debug line
+        res = get_response(ints, intents)
+        print(res)
+
+# Only start the chatbot if the script is run directly
+if __name__ == "__main__":
+    main()
