@@ -14,6 +14,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 
+#from tensorflow.keras.layers import Dense, Dropout
+#from tensorflow.keras.optimizers import SGD
+
 nltk.download('punkt')
 nltk.download('wordnet')
 nltk.download('stopwords')
@@ -75,9 +78,12 @@ model.add(Dense(128, input_shape=(len(X_train[0]),), activation='relu'))
 model.add(Dropout(0.5))
 model.add(Dense(64, activation='relu'))
 model.add(Dropout(0.5))
-model.add(Dense(len(y_train[0]), activation='softmax'))
 
-# Compile the model
+model.add(Dense(len(train_y[0]), activation='softmax'))
+# gradient_descent_v2.
+sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+#sgd = SGD(learning_rate=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+#model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 # Train the model
