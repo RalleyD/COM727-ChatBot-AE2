@@ -48,32 +48,7 @@ def predict_class(sentence):
         return_list.append({'intent': classes[r[0]], 'probability': str(r[1])})
     return return_list
 
-# def get_response(intents_list, intents_json):
-#     tag = intents_list[0]['intent']
-#     list_of_intents = intents_json['intents']
-#     for i in list_of_intents:
-#         if i['tag'] == tag:
-#             result = random.choice(i['responses'])
-#             break
-#     return result
 
-# def get_response(intents_list, intents_json):
-#     tag = intents_list[0]['intent']
-#     for intent in intents_json:
-
-#         list_of_intents = intent ['intents']
-#         for i in list_of_intents:
-#             if i['tag'] == tag:
-#                 result = random.choice(i['responses'])
-#                 break
-#         return result
-# print("COM727 Chatbot is here!")
-
-# while True:
-#     message = input("You: ")
-#     ints = predict_class(message)
-#     res = get_response(ints, intents)
-#     print(res)
 def get_response(intents_list, intents_json):
     tag = intents_list[0]['intent']
     for intent_json in intents_json:
