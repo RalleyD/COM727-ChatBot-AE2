@@ -12,6 +12,7 @@ from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from sklearn.model_selection import train_test_split
 from bayes_opt import BayesianOptimization
 from tensorflow.keras.optimizers import Adam
+import tensorflow as tf
 from tensorflow.keras.layers import TextVectorization, Dense, Dropout
 from tensorflow.keras.utils import to_categorical
 
@@ -91,22 +92,11 @@ X_train, X_test, y_train, y_test = train_test_split(
 all_patterns = []
 all_labels = []
 
-for item in data['intents']:
-    for pattern in item['patterns']:
-        all_patterns.append(pattern)  # Flatten patterns
-        all_labels.append(item['tag'])
-
-# Adapt TextVectorization to the patterns
-vectorize_layer = TextVectorization(
-    output_mode='multi_hot',
-)
-vectorize_layer.adapt(all_patterns)
-
-# Get actual vocabulary size
-vocab_size = len(vectorize_layer.get_vocabulary())
-
-# Update the output_sequence_length to match the vocabulary size
-vectorize_layer.output_sequence_length = vocab_size
+for intent in intents:
+    for item in intent['intents']:
+        for pattern in item['patterns']:
+            all_patterns.append(pattern)  # Flatten patterns
+            all_labels.append(item['tag'])
 
 # One-hot encode labels
 unique_classes = sorted(set(all_labels))
@@ -118,15 +108,19 @@ output_vectors = to_categorical(
     num_classes=num_classes
 )
 
-# Generate multi-hot encoded inputs
-multi_hot_inputs = np.array(vectorize_layer(all_patterns).numpy())
+# Create a TextVectorization layer
+vectorize_layer = TextVectorization(output_mode='multi_hot')
+vectorize_layer.adapt(all_patterns)
 
-# Define the function to optimize
+# Create a tf.data.Dataset for training
+dataset = tf.data.Dataset.from_tensor_slices((all_patterns, output_vectors))
+dataset = dataset.batch(32).prefetch(tf.data.AUTOTUNE)
 
 
 def train_model(learning_rate, batch_size, epochs, dropout_rate):
     model = Sequential()
-    model.add(Dense(64, input_shape=(vocab_size,), activation='elu'))
+    model.add(vectorize_layer)  # Vectorize the input text
+    model.add(Dense(64, activation='elu'))
     model.add(BatchNormalization())
     model.add(Dropout(dropout_rate))
     model.add(Dense(64, activation='elu'))
@@ -143,7 +137,7 @@ def train_model(learning_rate, batch_size, epochs, dropout_rate):
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
 
     hist = model.fit(
-        multi_hot_inputs, output_vectors,
+        dataset,
         epochs=200, batch_size=int(batch_size),
         verbose=0,
         callbacks=[early_stopping, reduce_lr],
@@ -201,7 +195,7 @@ reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
 
 # Train the final model
 final_hist = final_model.fit(
-    multi_hot_inputs, output_vectors,
+    dataset
     epochs=best_epochs, batch_size=best_batch_size,
     verbose=1,
     callbacks=[early_stopping, reduce_lr],
@@ -213,7 +207,7 @@ final_model.save('models/chatbot_model.keras')
 
 # Evaluate the final model
 loss, accuracy = final_model.evaluate(
-    multi_hot_inputs, output_vectors, verbose=0)
+    dataset, verbose=0)
 print(f"Final Test Accuracy: {accuracy * 100:.2f}%")
 
 # Plotting the training and validation accuracy
