@@ -1,6 +1,4 @@
-import random
 import json
-import pickle
 import numpy as np
 import nltk
 import tensorflow as tf
@@ -10,10 +8,12 @@ from nltk.stem import WordNetLemmatizer
 from keras import Sequential
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
-#from tensorflow.keras.optimizers import SGD
+# from tensorflow.keras.optimizers import SGD
 from sklearn.model_selection import train_test_split
 from bayes_opt import BayesianOptimization
-from tensorflow.keras.optimizers import Adam  
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.layers import TextVectorization, Dense, Dropout
+from tensorflow.keras.utils import to_categorical
 
 # Set random seed for reproducibility
 np.random.seed(42)
@@ -30,8 +30,8 @@ lemmatizer = WordNetLemmatizer()
 intents = [json.loads(open('new_intents.json').read())]
 
 # Load the JSON files
-json_files = ['Anaerobic_respiration.json', 'Aerobic_respiration.json', 
-              'Gas_exchage.json', 'Greetings.json', 
+json_files = ['Anaerobic_respiration.json', 'Aerobic_respiration.json',
+              'Gas_exchage.json', 'Greetings.json',
               'Response_to_exercise.json', 'Type_of_respiration.json']
 for file in json_files:
     intents.append(json.loads(open(file).read()))
@@ -52,7 +52,8 @@ for json_object in intents:
                 classes.append(intent['tag'])
 
 stop_words = set(stopwords.words('english'))
-words = [lemmatizer.lemmatize(word) for word in words if word not in ignore_letters]
+words = [lemmatizer.lemmatize(word)
+         for word in words if word not in ignore_letters]
 words = sorted(set(words))
 classes = sorted(set(classes))
 
@@ -66,7 +67,8 @@ output_empty = [0] * len(classes)
 for document in documents:
     bag = []
     word_patterns = document[0]
-    word_patterns = [lemmatizer.lemmatize(word.lower()) for word in word_patterns]
+    word_patterns = [lemmatizer.lemmatize(
+        word.lower()) for word in word_patterns]
     for word in words:
         bag.append(1) if word in word_patterns else bag.append(0)
 
@@ -82,12 +84,49 @@ X = np.array(list(training[:, 0]))
 y = np.array(list(training[:, 1]))
 
 # Split into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42)
+
+# Extract patterns and labels
+all_patterns = []
+all_labels = []
+
+for item in data['intents']:
+    for pattern in item['patterns']:
+        all_patterns.append(pattern)  # Flatten patterns
+        all_labels.append(item['tag'])
+
+# Adapt TextVectorization to the patterns
+vectorize_layer = TextVectorization(
+    output_mode='multi_hot',
+)
+vectorize_layer.adapt(all_patterns)
+
+# Get actual vocabulary size
+vocab_size = len(vectorize_layer.get_vocabulary())
+
+# Update the output_sequence_length to match the vocabulary size
+vectorize_layer.output_sequence_length = vocab_size
+
+# One-hot encode labels
+unique_classes = sorted(set(all_labels))
+class_to_index = {label: i for i, label in enumerate(unique_classes)}
+num_classes = len(unique_classes)
+
+output_vectors = to_categorical(
+    [class_to_index[label] for label in all_labels],
+    num_classes=num_classes
+)
+
+# Generate multi-hot encoded inputs
+multi_hot_inputs = np.array(vectorize_layer(all_patterns).numpy())
 
 # Define the function to optimize
-def train_model(learning_rate, batch_size,epochs,dropout_rate):
+
+
+def train_model(learning_rate, batch_size, epochs, dropout_rate):
     model = Sequential()
-    model.add(Dense(64, input_shape=(len(X_train[0]),), activation='elu'))
+    model.add(Dense(64, input_shape=(vocab_size,), activation='elu'))
     model.add(BatchNormalization())
     model.add(Dropout(dropout_rate))
     model.add(Dense(64, activation='elu'))
@@ -96,26 +135,31 @@ def train_model(learning_rate, batch_size,epochs,dropout_rate):
     model.add(Dense(len(y_train[0]), activation='softmax'))
 
     adam = Adam(learning_rate=learning_rate)
-    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=adam, metrics=['accuracy'])
 
-    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    early_stopping = EarlyStopping(
+        monitor='val_loss', patience=10, restore_best_weights=True)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
 
     hist = model.fit(
-        X_train, y_train,
+        multi_hot_inputs, output_vectors,
         epochs=200, batch_size=int(batch_size),
         verbose=0,
         callbacks=[early_stopping, reduce_lr],
         validation_data=(X_test, y_test)
     )
-    return hist.history['val_accuracy'][-1]  # Return the last validation accuracy
+    # Return the last validation accuracy
+    return hist.history['val_accuracy'][-1]
+
 
 # Define the bounds for the hyperparameters
 pbounds = {
     'learning_rate': (0.0001, 0.1),  # Adjust the range as necessary
     'batch_size': (8, 64),           # Adjust the range as necessary
     'epochs': (50, 300),             # Adjust the range as necessary
-    'dropout_rate': (0.1, 0.5),      # Adjust dropout rate range from 0.1 to 0.5
+    # Adjust dropout rate range from 0.1 to 0.5
+    'dropout_rate': (0.1, 0.5),
 }
 
 # Initialize Bayesian Optimization
@@ -139,7 +183,7 @@ best_dropout_rate = optimizer.max['params']['dropout_rate']
 
 # Train the final model with the best hyperparameters
 final_model = Sequential()
-final_model.add(Dense(64, input_shape=(len(X_train[0]),), activation='elu'))
+final_model.add(Dense(64,  input_shape=(vocab_size,), activation='elu'))
 final_model.add(BatchNormalization())
 final_model.add(Dropout(best_dropout_rate))
 final_model.add(Dense(64, activation='elu'))
@@ -148,14 +192,16 @@ final_model.add(Dropout(best_dropout_rate))
 final_model.add(Dense(len(y_train[0]), activation='softmax'))
 
 adam = Adam(learning_rate=best_learning_rate)
-final_model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+final_model.compile(loss='categorical_crossentropy',
+                    optimizer=adam, metrics=['accuracy'])
 
-early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+early_stopping = EarlyStopping(
+    monitor='val_loss', patience=10, restore_best_weights=True)
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
 
 # Train the final model
 final_hist = final_model.fit(
-    X_train, y_train,
+    multi_hot_inputs, output_vectors,
     epochs=best_epochs, batch_size=best_batch_size,
     verbose=1,
     callbacks=[early_stopping, reduce_lr],
@@ -166,7 +212,8 @@ final_hist = final_model.fit(
 final_model.save('models/chatbot_model.keras')
 
 # Evaluate the final model
-loss, accuracy = final_model.evaluate(X_test, y_test, verbose=0)
+loss, accuracy = final_model.evaluate(
+    multi_hot_inputs, output_vectors, verbose=0)
 print(f"Final Test Accuracy: {accuracy * 100:.2f}%")
 
 # Plotting the training and validation accuracy
