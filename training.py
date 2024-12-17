@@ -10,9 +10,6 @@ from keras.layers import Dense, Dropout
 from keras.optimizers import SGD
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
-
 
 #from tensorflow.keras.layers import Dense, Dropout
 #from tensorflow.keras.optimizers import SGD
@@ -21,22 +18,28 @@ nltk.download('punkt')
 nltk.download('wordnet')
 nltk.download('stopwords')
 nltk.download('punkt_tab')
+
 lemmatizer = WordNetLemmatizer()
+intents = [json.loads(open('new_intents.json').read())]
 
-intents = json.loads(open('new_intents.json').read())
-
+# Load the JSON file
+json_files= ['Anaerobic_respiration.json','Aerobic_respiration.json','Gas_exchage.json','Greetings.json','Response_to_exercise.json','Type_of_respiration.json']
+for file in json_files:
+    intents.append(json.loads(open(file).read()))
+ 
 words = []
 classes = []
 documents = []
-ignore_letters=['?','!','.','/','@']
+ignore_letters = ['?', '!', '.', '/', '@']
 
-for intent in intents['intents']:
-    for pattern in intent['patterns']:
-        word_list = nltk.word_tokenize(pattern)
-        words.extend(word_list)
-        documents.append((word_list,intent['tag']))
-        if intent['tag'] not in classes:
-            classes.append(intent['tag'])
+for json_object in intents:
+    for intent in json_object['intents']:
+        for pattern in intent['patterns']:
+            word_list = nltk.word_tokenize(pattern)
+            words.extend(word_list)
+            documents.append((word_list, intent['tag']))
+            if intent['tag'] not in classes:
+                classes.append(intent['tag'])
 
 stop_words = set(stopwords.words('english'))
 words = [lemmatizer.lemmatize(word) for word in words if word not in ignore_letters]
@@ -47,10 +50,11 @@ classes = sorted(set(classes))
 pickle.dump(words, open('models/words.pkl', 'wb'))
 pickle.dump(classes, open('models/classes.pkl', 'wb'))
 
+# Create the training data
 training = []
 output_empty = [0] * len(classes)
 for document in documents:
-    bag=[]
+    bag = []
     word_patterns = document[0]
     word_patterns = [lemmatizer.lemmatize(word.lower()) for word in word_patterns]
     for word in words:
@@ -72,14 +76,15 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-
+# Create the neural network model
 model = Sequential()
 model.add(Dense(128, input_shape=(len(X_train[0]),), activation='relu'))
 model.add(Dropout(0.5))
 model.add(Dense(64, activation='relu'))
 model.add(Dropout(0.5))
 
-model.add(Dense(len(train_y[0]), activation='softmax'))
+model.add(Dense(len(y_train[0]), activation='softmax'))
+
 # gradient_descent_v2.
 sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
 #sgd = SGD(learning_rate=0.01, decay=1e-6, momentum=0.9, nesterov=True)

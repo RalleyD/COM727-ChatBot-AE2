@@ -1,0 +1,54 @@
+{
+  "intents": [
+    {
+      "tag": "greeting",
+      "patterns": ["hello", "hi", "hey", "good morning", "good afternoon", "good evening"],
+      "responses": ["Hello! How can I assist you today?", "Hi! What can I help you with?", "Hey, how are you?"]
+    },
+    {
+      "tag": "goodbye",
+      "patterns": ["bye", "goodbye", "see you later", "have a good day", "thank you"],
+      "responses": ["You're welcome! Have a great day.", "Goodbye! If you have any more questions, feel free to ask.", "See you later!"]
+    },
+    {
+      "tag": "definition_of_respiration",
+      "patterns": ["what is respiration", "define respiration", "respiration definition"],
+      "responses": ["Respiration is the process by which cells generate energy from the food they consume, typically glucose, to produce ATP (adenosine triphosphate).", "Respiration is the metabolic process that converts glucose into energy in the form of ATP."]
+    },
+    {
+      "tag": "types_of_respiration",
+      "patterns": ["types of respiration", "what are the types of respiration", "respiration types"],
+      "responses": ["There are two main types of respiration: aerobic respiration, which requires oxygen, and anaerobic respiration, which does not require oxygen.", "Aerobic respiration uses oxygen to produce ATP, while anaerobic respiration does not use oxygen."]
+    },
+    {
+      "tag": "aerobic_respiration",
+      "patterns": ["what is aerobic respiration", "aerobic respiration process", "aerobic respiration equation"],
+      "responses": ["Aerobic respiration is the process where glucose is broken down in the presence of oxygen to produce ATP, water, and carbon dioxide. The equation is: C6H12O6 + 6O2 → 6CO2 + 6H2O + ATP.", "Aerobic respiration occurs in the mitochondria and produces a significant amount of ATP."]
+    },
+    {
+      "tag": "anaerobic_respiration",
+      "patterns": ["what is anaerobic respiration", "anaerobic respiration process", "anaerobic respiration equation"],
+      "responses": ["Anaerobic respiration is the process where glucose is broken down without the presence of oxygen to produce ATP and either lactic acid or ethanol. In humans, it produces lactic acid: C6H12O6 → 2C3H6O3 + ATP.", "Anaerobic respiration occurs in the cytoplasm and produces less ATP compared to aerobic respiration."]
+    },
+    {
+      "tag": "response_to_exercise",
+      "patterns": ["how does the body respond to exercise", "exercise and respiration", "respiration during exercise"],
+      "responses": ["During exercise, the body's demand for energy increases, leading to increased rates of both aerobic and anaerobic respiration. Aerobic respiration is the primary source of energy during sustained activities, while anaerobic respiration is more significant during high-intensity, short-duration activities.", "The body also increases breathing rate and heart rate to supply more oxygen and nutrients to the muscles."]
+    },
+    {
+      "tag": "metabolism_and_energy_production",
+      "patterns": ["how is energy produced in cells", "cellular metabolism", "energy production in cells"],
+      "responses": ["Energy in cells is produced through the breakdown of glucose via respiration. Aerobic respiration produces the majority of ATP in cells, while anaerobic respiration provides energy when oxygen is limited.", "The process involves glycolysis, the citric acid cycle, and oxidative phosphorylation in aerobic respiration."]
+    },
+    {
+      "tag": "breathing_and_gas_exchange",
+      "patterns": ["how do humans breathe", "breathing process in humans", "gas exchange in lungs"],
+      "responses": ["The breathing process in humans involves inhalation and exhalation. Air enters through the nostrils or mouth, passes through the trachea, bronchi, and bronchioles, and finally reaches the alveoli in the lungs where gas exchange occurs.", "Oxygen diffuses into the blood, while carbon dioxide diffuses out of the blood and into the alveoli to be exhaled."]
+    },
+    {
+      "tag": "default",
+      "patterns": [],
+      "responses": ["I'm not sure about that. Could you ask something related to human respiration?", "How can I help you with your questions about respiration?"]
+    }
+  ]
+}

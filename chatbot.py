@@ -7,7 +7,17 @@ from nltk.stem import WordNetLemmatizer
 from tensorflow.keras.models import load_model
 
 lemmatizer = WordNetLemmatizer()
-intents = json.loads(open('new_intents.json').read())
+
+json_files= ['Anaerobic_respiration.json',
+             'Aerobic_respiration.json',
+             'Gas_exchage.json','Greetings.json',
+             'Response_to_exercise.json',
+             'Type_of_respiration.json',
+             'new_intents.json']
+intents=[]
+for file in json_files:
+    intents.append(json.loads(open(file).read()))
+
 
 words = pickle.load(open('models/words.pkl', 'rb'))
 classes = pickle.load(open('models/classes.pkl', 'rb'))
@@ -39,18 +49,20 @@ def predict_class(sentence):
     return_list = []
     for r in results:
         return_list.append({'intent': classes[r[0]], 'probability': str(r[1])})
+    print(f"DEBUG: predicted intents: {return_list}") # debug line    
     return return_list
+
 
 def get_response(intents_list, intents_json):
     if len(intents_list) == 0:
         tag = 'default'
     else:
         tag = intents_list[0]['intent']
-    list_of_intents = intents_json['intents']
-    for i in list_of_intents:
-        if i['tag'] == tag:
-            result = random.choice(i['responses'])
-            break
+    for intent_json in intents_json:
+        list_of_intents = intent_json['intents']
+        for i in list_of_intents:
+            if i['tag'] == tag:
+                result = random.choice(i['responses'])
     return result
 
 def handle_query(message):
@@ -58,14 +70,13 @@ def handle_query(message):
     return get_response(ints, intents)
 
 def main():
-
     print("COM727 Chatbot is here!")
     while True:
         message = input("You: ")
         if message.lower() == "quit":
             break
-        print(handle_query(message))
-        print(res)
+        res = handle_query(message)
+        print("Chatbot: ", res)
 
 # Only start the chatbot if the script is run directly
 if __name__ == "__main__":
