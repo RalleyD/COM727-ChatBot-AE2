@@ -10,9 +10,6 @@ from keras.layers import Dense, Dropout
 from keras.optimizers import SGD
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
-
 
 #from tensorflow.keras.layers import Dense, Dropout
 #from tensorflow.keras.optimizers import SGD
@@ -79,15 +76,14 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-
 # Create the neural network model
 model = Sequential()
-model.add(Dense(128, input_shape=(len(train_x[0]),), activation='relu'))
+model.add(Dense(128, input_shape=(len(X_train[0]),), activation='relu'))
 model.add(Dropout(0.5))
 model.add(Dense(64, activation='relu'))
 model.add(Dropout(0.5))
 
-model.add(Dense(len(train_y[0]), activation='softmax'))
+model.add(Dense(len(y_train[0]), activation='softmax'))
 
 # gradient_descent_v2.
 sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
