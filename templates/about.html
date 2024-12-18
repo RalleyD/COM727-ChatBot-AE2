@@ -1,0 +1,76 @@
+<!-- declearation to tell the browser the type of document to load -->
+<!DOCTYPE html>
+<!-- root element -->
+<html>
+<!-- the following is not displayed on the page -->
+<head>
+    <style>
+        /* The homepage should start towards the centre of the page
+           Which should be more intuitive as a chat interface
+        */
+        body, html {
+            height: 80%;
+            margin-top: 50px;
+            font-family: Arial;
+        }
+        /* CSS styles for the chatbot UI */
+        /* CSS style class attribute selector '.'
+           to select a specific class attribute
+           and define a style for that class */
+        .buddyText {
+            color: black;
+            font-family: monospace;
+            font-size: 17px;
+            text-align: left;
+            line-height: 35px;
+        }
+        .buddyTeamText {
+            color: black;
+            font-family: monospace;
+            font-size: 17px;
+            text-align: center;
+            line-height: 35px;
+        }
+        .footer{ 
+            position: fixed;     
+            text-align: center;    
+            bottom: 0; 
+            width: 100%;
+        } 
+    </style>
+</head>
+<!-- Front-end user interface for the chatbot -->
+<body>
+<!-- The following layout is displayed on the webpage -->
+<div>
+    <h1 style="text-align: center;"><b>Biology Study Buddy Chatbot</b></h1>
+    <div>
+        <h2 class="buddyTeamText">
+            Brought to you by Team Solent Five:
+        </h2>
+    </div>
+    <div>
+        <p class="buddyTeamText">
+            Lauren Mundle
+        </p>
+        <p class="buddyTeamText">
+            Aigbokhai (Aigbs) Ohiwerei
+        </p>
+        <p class="buddyTeamText">
+            Itohowo (Itos) Okonna
+        </p>
+        <p class="buddyTeamText">
+            Richard (Rich Tea) Taylor
+        </p>
+        <p class="buddyTeamText">
+            Dan Ralley
+        </p>
+    </div>
+    <div class="footer">
+        <p class="buddyTeamText">
+                <b>Solent University (C) 2024 </b>
+        </p>
+    </div>
+</div>
+</body>
+</html>

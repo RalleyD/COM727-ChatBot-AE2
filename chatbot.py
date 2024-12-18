@@ -49,6 +49,7 @@ def predict_class(sentence):
     return_list = []
     for r in results:
         return_list.append({'intent': classes[r[0]], 'probability': str(r[1])})
+    print(f"DEBUG: predicted intents: {return_list}") # debug line    
     return return_list
 
 
@@ -64,7 +65,9 @@ def get_response(intents_list, intents_json):
                 result = random.choice(i['responses'])
     return result
 
-
+def handle_query(message):
+    ints = predict_class(message)
+    return get_response(ints, intents)
 
 def main():
     print("COM727 Chatbot is here!")
@@ -72,9 +75,7 @@ def main():
         message = input("You: ")
         if message.lower() == "quit":
             break
-        ints = predict_class(message)
-        print(f"DEBUG: predicted intents: {ints}") # debug line
-        res = get_response(ints, intents)
+        res = handle_query(message)
         print("Chatbot: ", res)
 
 # Only start the chatbot if the script is run directly

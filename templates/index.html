@@ -1,0 +1,179 @@
+<!-- declearation to tell the browser the type of document to load -->
+<!DOCTYPE html>
+<!-- root element -->
+<html>
+<!-- the following is not displayed on the page -->
+<head>
+    <title>Biology Study Buddy Chatbot</title>
+    <!-- setting viewport to scale the webpage nicely for different devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- External script declaration. Required because the JavaScript used in the HTML body
+         uses JQuery methods such as .val(), .append() and event listener syntax -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <style>
+        /*
+        CSS box sizing property:
+        Helps with easy sizing based on width or height + padding + border
+        This should help make responsive layouts, i.e the chatbox, more manageable.
+        */
+        * {
+            box-sizing: border-box
+        }
+        /* The homepage should start towards the centre of the page
+           Which should be more intuitive as a chat interface
+        */
+        body, html {
+            height: 80%;
+            margin-top: 50px;
+            font-family: Arial;
+        }
+        /* CSS styles for the chatbot UI */
+        /* chatbox displays the messages from the user and the bot
+           using '#' CSS ID selector,
+           to apply style rule to the element id=chatbox.
+        */
+        #chatbox {
+        margin-left: auto;
+        margin-right: auto;
+        width: 40%;
+        margin-top: 60px;
+        }
+        #userInput {
+            margin-left: auto;
+            margin-right: auto;
+            width: 40%;
+            margin-top: 20px;
+        }
+        #textInput {
+            width: 90%;
+            border: none;
+            border-bottom: 3px solid black;
+            font-family: monospace;
+            font-size: 17px;
+        }
+        /* CSS style class attribute selector '.'
+           to select a specific class attribute
+           and define a style for that class */
+        .userText {
+            color: white;
+            font-family: monospace;
+            font-size: 17px;
+            text-align: right;
+            line-height: 30px;
+        }
+        /* add rounded border, to look a bit like a speech bubble */
+        .userText span {
+            background-color: #808080;
+            padding: 10px;
+            border-radius: 2px;
+        }
+        .buddyText {
+            color: black;
+            font-family: monospace;
+            font-size: 17px;
+            text-align: left;
+            line-height: 35px;
+        }
+        .buddyText span {
+            background-color: #9fe6b1;
+            padding: 10px;
+            border-radius: 15px;
+        }
+        .mainBox {
+            margin-left: auto;
+            margin-right: auto;
+            width: 78%;
+            margin-top: 60px;
+            border: 1px solid green;
+            background-color: #e2f6e2;
+        }
+        .footer{ 
+            position: fixed;     
+            text-align: center;    
+            bottom: 0; 
+            width: 100%;
+        } 
+    </style>
+</head>
+<!-- Front-end user interface for the chatbot -->
+<body>
+<!-- The following layout is displayed on the webpage -->
+<div>
+    <h1 style="text-align: center;"><b>Biology Study Buddy Chatbot</b></h1>
+    <div class="mainBox">
+        <div>
+            <div id="chatbox">
+                <p class="buddyText">
+                    <span>Hi, I am here to help with your biology revision :-)
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div id="userInput">
+    <input id="textInput" type="text" name="msg" placeholder="Enter your query..." />
+    </div>
+        <!-- using JavaScript to interact with HTML's (DOM) Document Objects and
+            provides a means to communicate with the Flask backend app -->
+        <script>
+            function getBuddyResponse() {
+                // Get the user's text input
+                var rawText = $("#textInput").val();
+                // create HTML from the user's message, using the userText class for syle
+                var userHtml = '<p class="userText"><span>' + rawText + "</span></p>";
+                // clear the user text input field
+                $("#textInput").val("");
+                if (rawText) {
+                    /* append the new HTML element to the chatbox, displaying the user's
+                       message first in the chat box
+                    */
+                    $("#chatbox").append(userHtml);
+                    // scroll the chatbot box to the bottom so the latest message is visible
+                    document
+                        .getElementById("userInput")
+                        .scrollIntoView({ block: "start", behavior: "smooth" });
+                    /* using Javascript's fetch web API to make HTTP requests to the server
+                       backend.
+                       In this case, making a POST request containing JSON data with the
+                       user's query inside */
+                    fetch("/post", {
+                        method: 'POST',
+                        headers: {'content-type' : 'application/json'},
+                        body: JSON.stringify({msg: rawText}),
+                    })
+                    /* Tell the fetch to wait for a response and convert to text string */
+                    .then((response) => response.text())
+                    .then((data) => {
+                        /* create an HTML element to display the chatbot reply (data):
+                           <p> signifies a paragraph element
+                           using <span> element to group text under the buddyText style class
+                        */ 
+                        var buddyHtml = '<p class="buddyText"><span>' + data + "</span></p>";
+                        // place the bot's reply in the chatbox
+                        $("#chatbox").append(buddyHtml);
+                        /* Again, scroll into view. This time, the chatbot's reply.
+                           both the chatbot and user text appear inside the userText box.
+                        */  
+                        document
+                            .getElementById("userInput")
+                            .scrollIntoView({ block: "start", behavior: "smooth" })
+                    });
+                }
+            }
+            /* add an event listener to the textInput element
+               call the chatbot method when the user presses the enter key (13) */
+            $("#textInput").keypress(function (button) {
+                if (button.which == 13) {
+                    getBuddyResponse();
+                }
+            });
+        </script>
+        <!-- basic exception handling -->
+        <noscript> JavaScript not supported! </noscript>
+    </div>
+    <div class="footer">
+        <a href="about">About</a>
+    </div>
+</div>
+</body>
+</html>
