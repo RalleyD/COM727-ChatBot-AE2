@@ -24,7 +24,7 @@ To set a different name name of the chatbot webapp, run:
 export FLASK_APP=app
 ```
 
-## Delopment
+## Development
 
 By directly running app.py, the flask backend will run in debug mode and any
 changes made to the webapp will automatically be refreshed without having to restart
@@ -54,6 +54,29 @@ webpage templates live in the 'templates' subdirectory. This is a default name t
 
 ## Usage
 
+Run the web application from either main.py or app.py
+
+Click the IP address that appears in the terminal, e.g:
+
+```
+/semsester-1/COM727-ChatBot-AE2/main.py
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+Press CTRL+C to quit
+```
+
+Which should open a browser window, and start chatting.
+
+When the user posts a message in the chatbox, the index.html frontend calls in some JavaScript to send an HTML POST request to the Flask backend
+
+The app.py implements the Flask backend which calls on a function in chatbot.py to handle the user's query and return a reply.
+
+### n.b
+if the model has not been trained or served, training.py will need to be run first. Then it will all work from the webapp.
+
+### Alternatively...
 To run the webapp, using the terminal where the environment variables are set:
 
 ```
