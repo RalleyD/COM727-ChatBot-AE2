@@ -1,6 +1,8 @@
 import json
 import numpy as np
 import nltk
+import random
+import pickle
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from nltk.corpus import stopwords
@@ -92,11 +94,15 @@ X_train, X_test, y_train, y_test = train_test_split(
 all_patterns = []
 all_labels = []
 
-for intent in intents:
-    for item in intent['intents']:
-        for pattern in item['patterns']:
+for json_object in intents:
+    for intent in json_object['intents']:
+        for pattern in intent['patterns']:
             all_patterns.append(pattern)  # Flatten patterns
-            all_labels.append(item['tag'])
+            all_labels.append(intent['tag'])
+
+classes = sorted(set(all_labels))
+pickle.dump(classes, open('models/classes.pkl', 'wb'))
+
 
 # One-hot encode labels
 unique_classes = sorted(set(all_labels))
@@ -112,7 +118,7 @@ output_vectors = to_categorical(
 vectorize_layer = TextVectorization(output_mode='multi_hot')
 vectorize_layer.adapt(all_patterns)
 
-# Create a tf.data.Dataset for training
+# Create a tf.data.Dataset for training - works well for large datasets
 dataset = tf.data.Dataset.from_tensor_slices((all_patterns, output_vectors))
 dataset = dataset.batch(32).prefetch(tf.data.AUTOTUNE)
 
@@ -177,7 +183,8 @@ best_dropout_rate = optimizer.max['params']['dropout_rate']
 
 # Train the final model with the best hyperparameters
 final_model = Sequential()
-final_model.add(Dense(64,  input_shape=(vocab_size,), activation='elu'))
+final_model.add(vectorize_layer)
+final_model.add(Dense(64, activation='elu'))
 final_model.add(BatchNormalization())
 final_model.add(Dropout(best_dropout_rate))
 final_model.add(Dense(64, activation='elu'))
@@ -195,7 +202,7 @@ reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
 
 # Train the final model
 final_hist = final_model.fit(
-    dataset
+    dataset,
     epochs=best_epochs, batch_size=best_batch_size,
     verbose=1,
     callbacks=[early_stopping, reduce_lr],
