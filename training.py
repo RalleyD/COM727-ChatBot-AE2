@@ -3,35 +3,38 @@ import json
 import pickle
 import numpy as np
 import nltk
+import matplotlib.pyplot as plt
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from keras import Sequential
-from keras.layers import Dense, Dropout
-from keras.optimizers import SGD
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.optimizers import SGD
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+from bayes_opt import BayesianOptimization
 
-#from tensorflow.keras.layers import Dense, Dropout
-#from tensorflow.keras.optimizers import SGD
-
+# Download NLTK resources
 nltk.download('punkt')
 nltk.download('wordnet')
 nltk.download('stopwords')
-nltk.download('punkt_tab')
 
+# Initialize lemmatizer
 lemmatizer = WordNetLemmatizer()
 intents = [json.loads(open('new_intents.json').read())]
 
-# Load the JSON file
-json_files= ['Anaerobic_respiration.json','Aerobic_respiration.json','Gas_exchage.json','Greetings.json','Response_to_exercise.json','Type_of_respiration.json']
+# Load the JSON files
+json_files = ['Anaerobic_respiration.json', 'Aerobic_respiration.json', 
+              'Gas_exchage.json', 'Greetings.json', 
+              'Response_to_exercise.json', 'Type_of_respiration.json']
 for file in json_files:
     intents.append(json.loads(open(file).read()))
- 
+
 words = []
 classes = []
 documents = []
 ignore_letters = ['?', '!', '.', '/', '@']
 
+# Process the intents
 for json_object in intents:
     for intent in json_object['intents']:
         for pattern in intent['patterns']:
@@ -44,13 +47,13 @@ for json_object in intents:
 stop_words = set(stopwords.words('english'))
 words = [lemmatizer.lemmatize(word) for word in words if word not in ignore_letters]
 words = sorted(set(words))
-
 classes = sorted(set(classes))
 
+# Save words and classes
 pickle.dump(words, open('models/words.pkl', 'wb'))
 pickle.dump(classes, open('models/classes.pkl', 'wb'))
 
-# Create the training data
+# Create training data
 training = []
 output_empty = [0] * len(classes)
 for document in documents:
@@ -72,36 +75,111 @@ X = np.array(list(training[:, 0]))
 y = np.array(list(training[:, 1]))
 
 # Split into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Define the function to optimize
+def train_model(learning_rate, batch_size,epochs,dropout_rate):
+    model = Sequential()
+    model.add(Dense(128, input_shape=(len(X_train[0]),), activation='elu'))
+    model.add(Dropout(dropout_rate))
+    model.add(Dense(128, activation='elu'))
+    model.add(Dropout(dropout_rate))
+    model.add(Dense(len(y_train[0]), activation='softmax'))
+
+    sgd = SGD(learning_rate=learning_rate, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
+
+    hist = model.fit(
+        X_train, y_train,
+        epochs=200, batch_size=int(batch_size),
+        verbose=0,
+        callbacks=[early_stopping, reduce_lr],
+        validation_data=(X_test, y_test)
+    )
+    return hist.history['val_accuracy'][-1]  # Return the last validation accuracy
+
+# Define the bounds for the hyperparameters
+pbounds = {
+    'learning_rate': (0.0001, 0.1),  # Adjust the range as necessary
+    'batch_size': (8, 64),           # Adjust the range as necessary
+    'epochs': (50, 300),             # Adjust the range as necessary
+    'dropout_rate': (0.1, 0.5),      # Adjust dropout rate range from 0.1 to 0.5
+}
+
+# Initialize Bayesian Optimization
+optimizer = BayesianOptimization(
+    f=train_model,
+    pbounds=pbounds,
+    random_state=42,
 )
 
-# Create the neural network model
-model = Sequential()
-model.add(Dense(128, input_shape=(len(X_train[0]),), activation='relu'))
-model.add(Dropout(0.5))
-model.add(Dense(64, activation='relu'))
-model.add(Dropout(0.5))
+# Perform the optimization
+optimizer.maximize(init_points=5, n_iter=15)
+# Print the best hyperparameters found
+print("Best hyperparameters found:")
+print(optimizer.max)
 
-model.add(Dense(len(y_train[0]), activation='softmax'))
+# Retrieve the best hyperparameters
+best_learning_rate = optimizer.max['params']['learning_rate']
+best_batch_size = int(optimizer.max['params']['batch_size'])
+best_epochs = int(optimizer.max['params']['epochs'])
+best_dropout_rate = optimizer.max['params']['dropout_rate']
 
-# gradient_descent_v2.
-sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-#sgd = SGD(learning_rate=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-#model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+# Train the final model with the best hyperparameters
+final_model = Sequential()
+final_model.add(Dense(128, input_shape=(len(X_train[0]),), activation='elu'))
+final_model.add(Dropout(best_dropout_rate))
+final_model.add(Dense(64, activation='elu'))
+final_model.add(Dropout(best_dropout_rate))
+final_model.add(Dense(len(y_train[0]), activation='softmax'))
 
-# Train the model
-hist = model.fit(
+sgd = SGD(learning_rate=best_learning_rate, decay=1e-6, momentum=0.9, nesterov=True)
+final_model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+
+early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
+
+# Train the final model
+final_hist = final_model.fit(
     X_train, y_train,
-    epochs=200, batch_size=5,
+    epochs=best_epochs, batch_size=best_batch_size,
     verbose=1,
-    validation_data=(X_test, y_test)  # Evaluate on test set during training
+    callbacks=[early_stopping, reduce_lr],
+    validation_data=(X_test, y_test)
 )
-# Save the model
-model.save('models/chatbot_model.keras')
 
-# Evaluate the model
-loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
-print(f"Test Accuracy: {accuracy * 100:.2f}%")
+# Save the final model
+final_model.save('models/final_chatbot_model.keras')
+
+# Evaluate the final model
+loss, accuracy = final_model.evaluate(X_test, y_test, verbose=0)
+print(f"Final Test Accuracy: {accuracy * 100:.2f}%")
+
+# Plotting the training and validation accuracy
+plt.figure(figsize=(12, 4))
+
+# Accuracy Plot
+plt.subplot(1, 2, 1)
+plt.plot(final_hist.history['accuracy'], label='Training Accuracy')
+plt.plot(final_hist.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Model Accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(loc='upper left')
+
+# Loss Plot
+plt.subplot(1, 2, 2)
+plt.plot(final_hist.history['loss'], label='Training Loss')
+plt.plot(final_hist.history['val_loss'], label='Validation Loss')
+plt.title('Model Loss')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+plt.legend(loc='upper left')
+
+# Show plots
+plt.tight_layout()
+plt.show()
 
