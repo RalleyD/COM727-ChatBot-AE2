@@ -3,15 +3,22 @@ import json
 import pickle
 import numpy as np
 import nltk
+import tensorflow as tf
 import matplotlib.pyplot as plt
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from keras import Sequential
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.layers import Dense, Dropout
-from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
+#from tensorflow.keras.optimizers import SGD
 from sklearn.model_selection import train_test_split
 from bayes_opt import BayesianOptimization
+from tensorflow.keras.optimizers import Adam  
+
+# Set random seed for reproducibility
+np.random.seed(42)
+random.seed(42)
+tf.random.set_seed(42)
 
 # Download NLTK resources
 nltk.download('punkt')
@@ -80,14 +87,16 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # Define the function to optimize
 def train_model(learning_rate, batch_size,epochs,dropout_rate):
     model = Sequential()
-    model.add(Dense(128, input_shape=(len(X_train[0]),), activation='elu'))
+    model.add(Dense(64, input_shape=(len(X_train[0]),), activation='elu'))
+    model.add(BatchNormalization())
     model.add(Dropout(dropout_rate))
-    model.add(Dense(128, activation='elu'))
+    model.add(Dense(64, activation='elu'))
+    model.add(BatchNormalization())
     model.add(Dropout(dropout_rate))
     model.add(Dense(len(y_train[0]), activation='softmax'))
 
-    sgd = SGD(learning_rate=learning_rate, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    adam = Adam(learning_rate=learning_rate)
+    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
 
     early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
@@ -117,7 +126,7 @@ optimizer = BayesianOptimization(
 )
 
 # Perform the optimization
-optimizer.maximize(init_points=5, n_iter=15)
+optimizer.maximize(init_points=5, n_iter=10)
 # Print the best hyperparameters found
 print("Best hyperparameters found:")
 print(optimizer.max)
@@ -130,14 +139,16 @@ best_dropout_rate = optimizer.max['params']['dropout_rate']
 
 # Train the final model with the best hyperparameters
 final_model = Sequential()
-final_model.add(Dense(128, input_shape=(len(X_train[0]),), activation='elu'))
+final_model.add(Dense(64, input_shape=(len(X_train[0]),), activation='elu'))
+final_model.add(BatchNormalization())
 final_model.add(Dropout(best_dropout_rate))
 final_model.add(Dense(64, activation='elu'))
+final_model.add(BatchNormalization())
 final_model.add(Dropout(best_dropout_rate))
 final_model.add(Dense(len(y_train[0]), activation='softmax'))
 
-sgd = SGD(learning_rate=best_learning_rate, decay=1e-6, momentum=0.9, nesterov=True)
-final_model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+adam = Adam(learning_rate=best_learning_rate)
+final_model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
@@ -152,7 +163,7 @@ final_hist = final_model.fit(
 )
 
 # Save the final model
-final_model.save('models/final_chatbot_model.keras')
+final_model.save('models/chatbot_model.keras')
 
 # Evaluate the final model
 loss, accuracy = final_model.evaluate(X_test, y_test, verbose=0)
@@ -182,4 +193,3 @@ plt.legend(loc='upper left')
 # Show plots
 plt.tight_layout()
 plt.show()
-
