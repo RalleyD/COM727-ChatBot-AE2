@@ -3,16 +3,34 @@ import json
 import pickle
 import numpy as np
 import nltk
+<<<<<<< Updated upstream
+=======
+import tensorflow as tf
+>>>>>>> Stashed changes
 import matplotlib.pyplot as plt
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from keras import Sequential
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+<<<<<<< Updated upstream
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import SGD
 from sklearn.model_selection import train_test_split
 from bayes_opt import BayesianOptimization
 
+=======
+from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
+#from tensorflow.keras.optimizers import SGD
+from sklearn.model_selection import train_test_split
+from bayes_opt import BayesianOptimization
+from tensorflow.keras.optimizers import Adam  
+
+# Set random seed for reproducibility
+np.random.seed(42)
+random.seed(42)
+tf.random.set_seed(42)
+
+>>>>>>> Stashed changes
 # Download NLTK resources
 nltk.download('punkt')
 nltk.download('wordnet')
@@ -80,6 +98,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # Define the function to optimize
 def train_model(learning_rate, batch_size,epochs,dropout_rate):
     model = Sequential()
+<<<<<<< Updated upstream
     model.add(Dense(128, input_shape=(len(X_train[0]),), activation='elu'))
     model.add(Dropout(dropout_rate))
     model.add(Dense(128, activation='elu'))
@@ -88,6 +107,18 @@ def train_model(learning_rate, batch_size,epochs,dropout_rate):
 
     sgd = SGD(learning_rate=learning_rate, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+=======
+    model.add(Dense(64, input_shape=(len(X_train[0]),), activation='elu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(dropout_rate))
+    model.add(Dense(64, activation='elu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(dropout_rate))
+    model.add(Dense(len(y_train[0]), activation='softmax'))
+
+    adam = Adam(learning_rate=learning_rate)
+    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+>>>>>>> Stashed changes
 
     early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
@@ -117,7 +148,11 @@ optimizer = BayesianOptimization(
 )
 
 # Perform the optimization
+<<<<<<< Updated upstream
 optimizer.maximize(init_points=5, n_iter=15)
+=======
+optimizer.maximize(init_points=5, n_iter=10)
+>>>>>>> Stashed changes
 # Print the best hyperparameters found
 print("Best hyperparameters found:")
 print(optimizer.max)
@@ -130,6 +165,7 @@ best_dropout_rate = optimizer.max['params']['dropout_rate']
 
 # Train the final model with the best hyperparameters
 final_model = Sequential()
+<<<<<<< Updated upstream
 final_model.add(Dense(128, input_shape=(len(X_train[0]),), activation='elu'))
 final_model.add(Dropout(best_dropout_rate))
 final_model.add(Dense(64, activation='elu'))
@@ -138,6 +174,18 @@ final_model.add(Dense(len(y_train[0]), activation='softmax'))
 
 sgd = SGD(learning_rate=best_learning_rate, decay=1e-6, momentum=0.9, nesterov=True)
 final_model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+=======
+final_model.add(Dense(64, input_shape=(len(X_train[0]),), activation='elu'))
+final_model.add(BatchNormalization())
+final_model.add(Dropout(best_dropout_rate))
+final_model.add(Dense(64, activation='elu'))
+final_model.add(BatchNormalization())
+final_model.add(Dropout(best_dropout_rate))
+final_model.add(Dense(len(y_train[0]), activation='softmax'))
+
+adam = Adam(learning_rate=best_learning_rate)
+final_model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+>>>>>>> Stashed changes
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
@@ -152,6 +200,7 @@ final_hist = final_model.fit(
 )
 
 # Save the final model
+<<<<<<< Updated upstream
 final_model.save('models/final_chatbot_model.keras')
 
 # Evaluate the final model
@@ -182,4 +231,35 @@ plt.legend(loc='upper left')
 # Show plots
 plt.tight_layout()
 plt.show()
+=======
+final_model.save('models/chatbot_model.keras')
+>>>>>>> Stashed changes
 
+# Evaluate the final model
+loss, accuracy = final_model.evaluate(X_test, y_test, verbose=0)
+print(f"Final Test Accuracy: {accuracy * 100:.2f}%")
+
+# Plotting the training and validation accuracy
+plt.figure(figsize=(12, 4))
+
+# Accuracy Plot
+plt.subplot(1, 2, 1)
+plt.plot(final_hist.history['accuracy'], label='Training Accuracy')
+plt.plot(final_hist.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Model Accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(loc='upper left')
+
+# Loss Plot
+plt.subplot(1, 2, 2)
+plt.plot(final_hist.history['loss'], label='Training Loss')
+plt.plot(final_hist.history['val_loss'], label='Validation Loss')
+plt.title('Model Loss')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+plt.legend(loc='upper left')
+
+# Show plots
+plt.tight_layout()
+plt.show()
