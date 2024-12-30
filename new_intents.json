@@ -1326,7 +1326,7 @@
             "responses": ["We are 24/7.", "We are open 24 hours seven days a week.", "24/7"]},
             {"tag": "default",
             "patterns": [],
-            "responses": ["I can only talk about Biology, please ask me anything related to Biology.", "I'm not sure what you mean, please explain.","I don't have an answer for that today, try a different question."]}
+            "responses": ["I can only talk about Biology, please ask me anything related to Biology.", "I'm not sure what you mean, please explain.", "I don't have an answer for that today, try a different question."]}
 
     ]
 }

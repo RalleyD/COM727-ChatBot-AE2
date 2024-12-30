@@ -21,7 +21,7 @@ random.seed(42)
 tf.random.set_seed(42)
 
 # Download NLTK resources
-nltk.download('punkt')
+nltk.download('punkt_tab')
 nltk.download('wordnet')
 nltk.download('stopwords')
 
