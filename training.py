@@ -92,10 +92,9 @@ y = np.array(list(training[:, 1]))
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42)
 
-# Define the function to optimize
-
 
 def train_model(learning_rate, batch_size, epochs, dropout_rate):
+    # Define the function to optimize
     model = Sequential()
     model.add(Dense(64, input_shape=(len(X_train[0]),), activation='elu'))
     model.add(BatchNormalization())
