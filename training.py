@@ -39,56 +39,6 @@ json_files = ['Anaerobic_respiration.json', 'Aerobic_respiration.json',
 for file in json_files:
     intents.append(json.loads(open(file).read()))
 
-words = []
-classes = []
-documents = []
-ignore_letters = ['?', '!', '.', '/', '@']
-
-# Process the intents
-for json_object in intents:
-    for intent in json_object['intents']:
-        for pattern in intent['patterns']:
-            word_list = nltk.word_tokenize(pattern)
-            words.extend(word_list)
-            documents.append((word_list, intent['tag']))
-            if intent['tag'] not in classes:
-                classes.append(intent['tag'])
-
-stop_words = set(stopwords.words('english'))
-words = [lemmatizer.lemmatize(word)
-         for word in words if word not in ignore_letters]
-words = sorted(set(words))
-classes = sorted(set(classes))
-
-# Save words and classes
-pickle.dump(words, open('models/words.pkl', 'wb'))
-pickle.dump(classes, open('models/classes.pkl', 'wb'))
-
-# Create training data
-training = []
-output_empty = [0] * len(classes)
-for document in documents:
-    bag = []
-    word_patterns = document[0]
-    word_patterns = [lemmatizer.lemmatize(
-        word.lower()) for word in word_patterns]
-    for word in words:
-        bag.append(1) if word in word_patterns else bag.append(0)
-
-    output_row = list(output_empty)
-    output_row[classes.index(document[1])] = 1
-    training.append([bag, output_row])
-
-random.shuffle(training)
-training = np.array(training, dtype=object)
-
-# Split into input and output
-X = np.array(list(training[:, 0]))
-y = np.array(list(training[:, 1]))
-
-# Split into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42)
 
 # Extract patterns and labels
 all_patterns = []
@@ -119,8 +69,26 @@ vectorize_layer = TextVectorization(output_mode='multi_hot')
 vectorize_layer.adapt(all_patterns)
 
 # Create a tf.data.Dataset for training - works well for large datasets
+# train_size = 0.7
+# dataset = tf.data.Dataset.from_tensor_slices(
+#     # tf.constant ensures a 1d array reshape
+#     (tf.constant(all_patterns), output_vectors))
+# dataset = dataset.batch(32).prefetch(tf.data.AUTOTUNE)
+# dataset = dataset.shuffle(len(all_labels)).batch(32)
+# train = dataset.take(int(len(all_labels) * train_size)
+#                      ).batch(32).prefetch(tf.data.AUTOTUNE)
+# test = dataset.skip(int(len(all_labels) * train_size)
+#                     ).batch(32).prefetch(tf.data.AUTOTUNE)
+# test = tf.data.Dataset.from_tensors(test)
 dataset = tf.data.Dataset.from_tensor_slices((all_patterns, output_vectors))
-dataset = dataset.batch(32).prefetch(tf.data.AUTOTUNE)
+dataset = dataset.shuffle(buffer_size=len(all_patterns))
+
+# Split the dataset
+dataset_size = len(all_patterns)
+train_size = int(0.6 * dataset_size)
+
+train = dataset.take(train_size).batch(32).prefetch(tf.data.AUTOTUNE)
+test = dataset.skip(train_size).batch(32).prefetch(tf.data.AUTOTUNE)
 
 
 def train_model(learning_rate, batch_size, epochs, dropout_rate):
@@ -132,7 +100,7 @@ def train_model(learning_rate, batch_size, epochs, dropout_rate):
     model.add(Dense(64, activation='elu'))
     model.add(BatchNormalization())
     model.add(Dropout(dropout_rate))
-    model.add(Dense(len(y_train[0]), activation='softmax'))
+    model.add(Dense(num_classes, activation='softmax'))
 
     adam = Adam(learning_rate=learning_rate)
     model.compile(loss='categorical_crossentropy',
@@ -143,11 +111,11 @@ def train_model(learning_rate, batch_size, epochs, dropout_rate):
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
 
     hist = model.fit(
-        dataset,
+        train,
         epochs=200, batch_size=int(batch_size),
         verbose=0,
         callbacks=[early_stopping, reduce_lr],
-        validation_data=(X_test, y_test)
+        validation_data=test
     )
     # Return the last validation accuracy
     return hist.history['val_accuracy'][-1]
@@ -190,34 +158,34 @@ final_model.add(Dropout(best_dropout_rate))
 final_model.add(Dense(64, activation='elu'))
 final_model.add(BatchNormalization())
 final_model.add(Dropout(best_dropout_rate))
-final_model.add(Dense(len(y_train[0]), activation='softmax'))
+final_model.add(Dense(num_classes, activation='softmax'))
 
 adam = Adam(learning_rate=best_learning_rate)
 final_model.compile(loss='categorical_crossentropy',
                     optimizer=adam, metrics=['accuracy'])
 
 early_stopping = EarlyStopping(
-    monitor='val_loss', patience=10, restore_best_weights=True)
+    monitor='val_loss', patience=5, restore_best_weights=True)
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3)
 
 # Train the final model
 final_hist = final_model.fit(
-    dataset,
+    train,
     epochs=best_epochs, batch_size=best_batch_size,
     verbose=1,
     callbacks=[early_stopping, reduce_lr],
-    validation_data=(X_test, y_test)
+    validation_data=test
 )
 
 # Save the final model
-final_model.save('models/chatbot_model.keras')
+final_model.save('models/chatbot_model2')
 
 # Evaluate the final model
-loss, accuracy = final_model.evaluate(
-    dataset, verbose=0)
+loss, accuracy = final_model.evaluate(test, verbose=0)
 print(f"Final Test Accuracy: {accuracy * 100:.2f}%")
 
 # Plotting the training and validation accuracy
+
 plt.figure(figsize=(12, 4))
 
 # Accuracy Plot
