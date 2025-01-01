@@ -11,7 +11,7 @@ json_files = ['Anaerobic_respiration.json',
               'Greetings.json',
               'Response_to_exercise.json',
               'Type_of_respiration.json',
-              'new_intents.json']
+              ]
 intents = []
 for file in json_files:
     intents.append(json.loads(open(file).read()))

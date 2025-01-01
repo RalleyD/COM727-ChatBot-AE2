@@ -30,7 +30,7 @@ nltk.download('stopwords')
 
 # Initialize lemmatizer
 lemmatizer = WordNetLemmatizer()
-intents = [json.loads(open('new_intents.json').read())]
+intents = []
 
 # Load the JSON files
 json_files = ['Anaerobic_respiration.json', 'Aerobic_respiration.json',
@@ -183,6 +183,8 @@ final_model.save('models/chatbot_model2')
 # Evaluate the final model
 loss, accuracy = final_model.evaluate(test, verbose=0)
 print(f"Final Test Accuracy: {accuracy * 100:.2f}%")
+
+print(final_model.summary())
 
 # Plotting the training and validation accuracy
 
